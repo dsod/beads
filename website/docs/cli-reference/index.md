@@ -9,7 +9,7 @@ sidebar_position: 0
 <!-- AUTO-GENERATED: do not edit manually -->
 Reference for bd Latest. Generated from `bd help --list` and `bd help --doc <command>`.
 
-This reference covers all 106 live top-level `bd` commands. Regenerate it with:
+This reference covers all 107 live top-level `bd` commands. Regenerate it with:
 
 ```bash
 ./scripts/generate-cli-docs.sh
@@ -48,6 +48,7 @@ This reference covers all 106 live top-level `bd` commands. Regenerate it with:
 - [`bd duplicates`](./duplicates.md)
 - [`bd edit`](./edit.md)
 - [`bd epic`](./epic.md)
+- [`bd events`](./events.md)
 - [`bd export`](./export.md)
 - [`bd federation`](./federation.md)
 - [`bd find-duplicates`](./find-duplicates.md)
