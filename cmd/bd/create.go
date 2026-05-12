@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/steveyegge/beads/events"
 	"github.com/steveyegge/beads/internal/config"
 	"github.com/steveyegge/beads/internal/configfile"
 	"github.com/steveyegge/beads/internal/debug"
@@ -395,6 +394,11 @@ var createCmd = &cobra.Command{
 				_ = store.Close() // Best effort cleanup on error path
 			}
 
+			// Wrap the routed store with the event decorator so emissions land
+			// on the destination rig's sink. Hooks are NOT wired into routed
+			// stores by design (matches existing behavior).
+			targetStore = wrapStoreWithEvents(targetStore)
+
 			// Replace store for remainder of create operation.
 			// Must use setStore to sync cmdCtx.Store — a bare `store = targetStore`
 			// leaves cmdCtx.Store pointing at the closed original, which causes
@@ -696,25 +700,6 @@ var createCmd = &cobra.Command{
 			if pushErr := remoteCache.Push(rootCtx, repoPath); pushErr != nil {
 				FatalError("failed to push to %s: %v\nThe issue was created locally but not synced to the remote.", repoPath, pushErr)
 			}
-		}
-
-		// Emit issue.created event (best-effort; no-op when BEADS_EVENT_SINK unset).
-		// Done after the commit so any consumer reading the stream can rely on
-		// the issue actually being persisted.
-		{
-			var parentEpicPtr *string
-			if parentID != "" {
-				p := parentID
-				parentEpicPtr = &p
-			}
-			emitEvent(ctx, events.IssueCreated, issuePartition(issue.ID), events.IssueCreatedPayload{
-				IssueID:        issue.ID,
-				Type:           string(issue.IssueType),
-				Title:          issue.Title,
-				Labels:         labels,
-				ParentEpicID:   parentEpicPtr,
-				CreatedByActor: getActorWithGit(),
-			})
 		}
 
 		if jsonOutput {

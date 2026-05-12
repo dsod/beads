@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/steveyegge/beads/events"
 	"github.com/steveyegge/beads/internal/audit"
 	"github.com/steveyegge/beads/internal/config"
 	"github.com/steveyegge/beads/internal/storage"
@@ -181,18 +180,8 @@ create, update, show, or close operation).`,
 			}
 			audit.LogFieldChange(id, "status", oldStatus, "closed", actor, reason)
 
-			// Emit issue.closed + issue.status_changed.
-			// Both share the run-wide correlation id (set by emitEvent).
-			emitEvent(ctx, events.IssueClosed, issuePartition(id), events.IssueClosedPayload{
-				IssueID:       id,
-				Reason:        reason,
-				ClosedByActor: getActorWithGit(),
-			})
-			emitEvent(ctx, events.IssueStatusChanged, issuePartition(id), events.IssueStatusChangedPayload{
-				IssueID: id,
-				From:    oldStatus,
-				To:      "closed",
-			})
+			// issue.closed + issue.status_changed are emitted by the
+			// storage decorator's CloseIssue override.
 
 			closedCount++
 
