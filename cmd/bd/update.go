@@ -447,12 +447,21 @@ create, update, show, or close operation).`,
 				}
 			}
 
-			// Re-fetch for display
+			// Re-fetch for display (and for event payload construction below)
 			updatedIssue, _ := issueStore.GetIssue(ctx, result.ResolvedID)
 			updateTitle := ""
 			if updatedIssue != nil {
 				updateTitle = updatedIssue.Title
 			}
+
+			// Emit events (best-effort; no-op when BEADS_EVENT_SINK unset).
+			// Order within a bundle:
+			//   1. issue.claimed      — when --claim succeeded
+			//   2. issue.status_changed — when status field actually transitioned
+			//   3. issue.label_added / removed — one per label
+			//   4. issue.updated      — catch-all for the rest of the diff
+			// All share the run-wide correlation id (set by emitEvent).
+			emitUpdateEvents(ctx, result.ResolvedID, issue, updatedIssue, regularUpdates, addLabels, removeLabels, setLabels, claimFlag)
 
 			if jsonOutput {
 				if updatedIssue != nil {

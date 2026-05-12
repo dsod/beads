@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/steveyegge/beads/events"
 	"github.com/steveyegge/beads/internal/ui"
 )
 
@@ -87,6 +88,14 @@ Examples:
 		if err != nil {
 			FatalErrorRespectJSON("adding comment: %v", err)
 		}
+
+		// Emit issue.comment_added.
+		emitEvent(ctx, events.IssueCommentAdded, issuePartition(result.ResolvedID), events.IssueCommentAddedPayload{
+			IssueID:     result.ResolvedID,
+			CommentID:   comment.ID,
+			AuthorActor: author,
+			BodyKind:    detectCommentBodyKind(commentText),
+		})
 
 		commandDidWrite.Store(true)
 

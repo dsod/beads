@@ -719,6 +719,7 @@ var rootCmd = &cobra.Command{
 			"codex-hook",
 			"doctor",
 			"dolt", // bare "bd dolt" shows help only; subcommands handled below
+			"events", // reads/writes Redis Streams, not the bd database
 			"fish",
 			"formula", // parser-only subcommands; add a store-needed guard before adding DB-backed formula subcommands
 			"help",
@@ -1143,6 +1144,9 @@ var rootCmd = &cobra.Command{
 		if store != nil {
 			_ = store.Close() // Best effort cleanup
 		}
+
+		// Close the event sink (no-op if BEADS_EVENT_SINK was unset).
+		closeEventSink()
 
 		// End the command span and flush OTel data before process exit.
 		if commandSpan != nil {

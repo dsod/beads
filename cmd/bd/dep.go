@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/steveyegge/beads/events"
 	"github.com/steveyegge/beads/internal/storage"
 	"github.com/steveyegge/beads/internal/types"
 	"github.com/steveyegge/beads/internal/ui"
@@ -333,6 +334,24 @@ Examples:
 		if err := fromStore.AddDependency(ctx, dep, actor); err != nil {
 			FatalErrorRespectJSON("%v", err)
 		}
+
+		// Emit issue.updated with a "dependencies" change marker. Per the
+		// design brief, dep adds don't get their own event type; they fold
+		// into the generic update channel so consumers that already track
+		// updates don't need to subscribe to a second stream.
+		emitEvent(ctx, events.IssueUpdated, issuePartition(fromID), events.IssueUpdatedPayload{
+			IssueID:       fromID,
+			ChangedFields: []string{"dependencies"},
+			Before:        map[string]any{},
+			After: map[string]any{
+				"dependencies": map[string]any{
+					"added": []map[string]string{{
+						"depends_on": toID,
+						"type":       string(dt),
+					}},
+				},
+			},
+		})
 
 		// Check for cycles after adding dependency (skipped with --no-cycle-check)
 		noCycleCheck, _ := cmd.Flags().GetBool("no-cycle-check")
