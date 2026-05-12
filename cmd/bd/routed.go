@@ -198,6 +198,10 @@ func resolveViaPrefixRouting(ctx context.Context, id string) (*RoutedResult, err
 	if err != nil {
 		return nil, fmt.Errorf("opening routed store for %s: %w", matchedRoute.Path, err)
 	}
+	// Routed store may also receive writes (bd update / bd close via prefix
+	// routing). Wrap with the event decorator so emissions originate from
+	// the destination's sink.
+	targetStore = wrapStoreWithEvents(targetStore)
 
 	result, err := resolveAndGetFromStore(ctx, targetStore, id, true)
 	if err != nil {

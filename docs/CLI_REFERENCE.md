@@ -236,6 +236,9 @@ Reference for bd Latest. Generated from `bd help --all`.
   - [bd completion zsh](#bd-completion-zsh) — Generate the autocompletion script for zsh
 - [bd cook](#bd-cook) — Compile a formula into a proto (ephemeral by default)
 - [bd defer](#bd-defer) — Defer one or more issues for later
+- [bd events](#bd-events) — Inspect the bd event stream (replay / tail)
+  - [bd events replay](#bd-events-replay) — Print events from the configured sink starting at &lt;from-event-id&gt;
+  - [bd events tail](#bd-events-tail) — Follow the event sink, printing new envelopes as they arrive
 - [bd formula](#bd-formula) — Manage workflow formulas
   - [bd formula convert](#bd-formula-convert) — Convert formula from JSON to TOML
   - [bd formula list](#bd-formula-list) — List available formulas
@@ -5431,6 +5434,39 @@ bd defer [id...] [flags]
 
 ```
       --until string   Defer until specific time (e.g., +1h, tomorrow, next monday)
+```
+
+### bd events
+
+Read events emitted by bd to its Redis Streams sink.
+
+The sink is configured via BEADS_EVENT_SINK. When unset, both subcommands
+exit immediately with a hint — there's nothing to inspect.
+
+```
+bd events
+```
+
+#### bd events replay
+
+Read every shard via XRANGE starting at &lt;from-event-id&gt; ("-" for the
+beginning) and print each envelope as one line of JSON to stdout.
+
+Cross-shard ordering is NOT guaranteed; sort by event_id (ULIDs are
+lexicographically sortable by time) if a global order is required.
+
+```
+bd events replay <from-event-id>
+```
+
+#### bd events tail
+
+Block on XREAD across every shard and print each new envelope as JSON.
+
+Exits when interrupted (Ctrl-C / SIGTERM) or when the sink connection drops.
+
+```
+bd events tail
 ```
 
 ### bd formula

@@ -83,5 +83,9 @@ func openRoutedReadStore(ctx context.Context, store storage.DoltStorage) (storag
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to open routed store at %s: %w", targetRepoPath, err)
 	}
+	// Routed store may also receive writes (bd close/update via routing).
+	// Wrap with the event decorator so emissions originate from the
+	// destination's sink.
+	targetStore = wrapStoreWithEvents(targetStore)
 	return targetStore, true, nil
 }

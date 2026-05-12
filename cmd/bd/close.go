@@ -180,6 +180,9 @@ create, update, show, or close operation).`,
 			}
 			audit.LogFieldChange(id, "status", oldStatus, "closed", actor, reason)
 
+			// issue.closed + issue.status_changed are emitted by the
+			// storage decorator's CloseIssue override.
+
 			closedCount++
 
 			// Auto-close parent molecule if all steps are now complete.

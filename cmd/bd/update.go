@@ -447,7 +447,8 @@ create, update, show, or close operation).`,
 				}
 			}
 
-			// Re-fetch for display
+			// Re-fetch for display. Event emission happens inside the
+			// storage decorator after each underlying mutation.
 			updatedIssue, _ := issueStore.GetIssue(ctx, result.ResolvedID)
 			updateTitle := ""
 			if updatedIssue != nil {

@@ -87,6 +87,8 @@ Examples:
 		if err != nil {
 			FatalErrorRespectJSON("adding comment: %v", err)
 		}
+		// issue.comment_added is emitted by the storage decorator's
+		// AddIssueComment override.
 
 		commandDidWrite.Store(true)
 

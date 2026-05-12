@@ -333,6 +333,10 @@ Examples:
 		if err := fromStore.AddDependency(ctx, dep, actor); err != nil {
 			FatalErrorRespectJSON("%v", err)
 		}
+		// issue.updated{dependencies} is emitted by the storage decorator's
+		// AddDependency override. The bulk path (--file) goes through the
+		// transaction, which the event-tracking transaction wrapper also
+		// covers.
 
 		// Check for cycles after adding dependency (skipped with --no-cycle-check)
 		noCycleCheck, _ := cmd.Flags().GetBool("no-cycle-check")

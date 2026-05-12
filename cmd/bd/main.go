@@ -718,7 +718,8 @@ var rootCmd = &cobra.Command{
 			"context", // reads config files directly, does not need DB open
 			"codex-hook",
 			"doctor",
-			"dolt", // bare "bd dolt" shows help only; subcommands handled below
+			"dolt",   // bare "bd dolt" shows help only; subcommands handled below
+			"events", // reads/writes Redis Streams, not the bd database
 			"fish",
 			"formula", // parser-only subcommands; add a store-needed guard before adding DB-backed formula subcommands
 			"help",
@@ -1062,6 +1063,13 @@ var rootCmd = &cobra.Command{
 			store = storage.NewHookFiringStore(store, hookRunner)
 		}
 
+		// Wrap with event-emitting decorator (outermost) so events fire
+		// AFTER hooks complete. When BEADS_EVENT_SINK is unset
+		// wrapStoreWithEvents returns the store unchanged — zero overhead.
+		if store != nil {
+			store = wrapStoreWithEvents(store)
+		}
+
 		// Warn if multiple databases detected in directory hierarchy
 		warnMultipleDatabases(dbPath)
 
@@ -1143,6 +1151,9 @@ var rootCmd = &cobra.Command{
 		if store != nil {
 			_ = store.Close() // Best effort cleanup
 		}
+
+		// Close the event sink (no-op if BEADS_EVENT_SINK was unset).
+		closeEventSink()
 
 		// End the command span and flush OTel data before process exit.
 		if commandSpan != nil {

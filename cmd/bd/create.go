@@ -394,6 +394,11 @@ var createCmd = &cobra.Command{
 				_ = store.Close() // Best effort cleanup on error path
 			}
 
+			// Wrap the routed store with the event decorator so emissions land
+			// on the destination rig's sink. Hooks are NOT wired into routed
+			// stores by design (matches existing behavior).
+			targetStore = wrapStoreWithEvents(targetStore)
+
 			// Replace store for remainder of create operation.
 			// Must use setStore to sync cmdCtx.Store — a bare `store = targetStore`
 			// leaves cmdCtx.Store pointing at the closed original, which causes
